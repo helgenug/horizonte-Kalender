@@ -1,65 +1,62 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --sand: #f2ead8;
-  --ocean: #1a3a4a;
-  --deep: #0d2330;
-  --horizon: #3d7a8a;
+  --bg: #f2f2f7;
+  --bg2: #ffffff;
+  --bg3: #e5e5ea;
+  --text: #1c1c1e;
+  --text2: #3a3a3c;
+  --text3: #8e8e93;
+  --separator: #d1d1d6;
   --gold: #c9953a;
-  --gold-soft: rgba(201,149,58,0.15);
-  --fog: #8faab5;
-  --white: #faf7f0;
-  --card: #112433;
-  --card-hover: #152b3c;
-  --border: rgba(255,255,255,0.07);
-  --h-color: #e8845a;
-  --d-color: #5ab8e8;
-  --i-color: #a87ee0;
-  --h-bg: rgba(232,132,90,0.15);
-  --d-bg: rgba(90,184,232,0.15);
-  --i-bg: rgba(168,126,224,0.15);
+  --gold-light: rgba(201,149,58,0.12);
+  --red: #ff3b30;
+  --blue: #007aff;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+}
 
 body {
-  background: var(--deep);
-  color: var(--sand);
-  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
 button {
   cursor: pointer;
-  font-family: 'DM Mono', monospace;
+  font-family: inherit;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
 input, select, textarea {
-  font-family: 'DM Mono', monospace;
-  background: rgba(26,58,74,0.6);
-  border: 1px solid rgba(143,170,181,0.3);
-  color: var(--sand);
-  padding: 12px 14px;
-  border-radius: 8px;
+  font-family: inherit;
+  background: var(--bg);
+  border: 1.5px solid var(--separator);
+  color: var(--text);
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
   width: 100%;
-  font-size: 15px;
+  font-size: 16px;
+  transition: border-color 0.15s;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--gold);
-  background: rgba(26,58,74,0.8);
 }
-select option { background: var(--ocean); }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--horizon); border-radius: 4px; }
-
-/* Smooth scroll for filter strip */
-.filter-scroll {
+.scroll-x {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -67,16 +64,16 @@ select option { background: var(--ocean); }
   scrollbar-width: none;
   padding-bottom: 2px;
 }
-.filter-scroll::-webkit-scrollbar { display: none; }
+.scroll-x::-webkit-scrollbar { display: none; }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.slide-up { animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both; }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-in { animation: fadeIn 0.25s ease both; }
-
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.96) translateY(12px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-.modal-in { animation: modalIn 0.2s ease both; }
+.fade-in { animation: fadeIn 0.2s ease both; }

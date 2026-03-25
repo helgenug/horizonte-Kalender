@@ -2,185 +2,96 @@ import { useState } from 'react'
 
 const ROLES = ['Fotograf', 'Videograf', 'Social Media']
 
-const PERSONS = [
-  { key:'H', name:'Holger', color:'#e8845a', bg:'rgba(232,132,90,0.12)' },
-  { key:'D', name:'David',  color:'#5ab8e8', bg:'rgba(90,184,232,0.12)' },
-  { key:'I', name:'Ilayda', color:'#a87ee0', bg:'rgba(168,126,224,0.12)' },
-]
-
-export default function TeamModal({ event, onSave, onClose }) {
+export default function TeamModal({ event, persons, onSave, onClose }) {
   const [assignments, setAssignments] = useState(
     JSON.parse(JSON.stringify(event.assignments || {}))
   )
 
   const isActive = (key) => (assignments[key] || []).length > 0
-
-  const togglePerson = (key) => {
-    setAssignments(prev => ({
-      ...prev,
-      [key]: isActive(key) ? [] : ['Fotograf']
-    }))
-  }
-
-  const toggleRole = (personKey, role) => {
-    setAssignments(prev => {
-      const current = prev[personKey] || []
-      const updated = current.includes(role)
-        ? current.filter(r => r !== role)
-        : [...current, role]
-      return { ...prev, [personKey]: updated }
-    })
-  }
+  const togglePerson = (key) => setAssignments(prev => ({ ...prev, [key]: isActive(key) ? [] : ['Fotograf'] }))
+  const toggleRole = (personKey, role) => setAssignments(prev => {
+    const cur = prev[personKey] || []
+    return { ...prev, [personKey]: cur.includes(role) ? cur.filter(r => r !== role) : [...cur, role] }
+  })
 
   const handleSave = () => {
-    const team = Object.entries(assignments)
-      .filter(([, roles]) => roles.length > 0)
-      .map(([k]) => k)
+    const team = Object.entries(assignments).filter(([, r]) => r.length > 0).map(([k]) => k)
     onSave({ assignments, team })
   }
 
   return (
-    <div
-      style={{
-        position:'fixed', inset:0,
-        background:'rgba(0,0,0,0.7)',
-        backdropFilter:'blur(6px)',
-        display:'flex', alignItems:'flex-end', justifyContent:'center',
-        zIndex:1000, padding:'0'
-      }}
-      onClick={e => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="modal-in"
-        style={{
-          background:'#0f2535',
-          borderRadius:'20px 20px 0 0',
-          padding:'0 0 env(safe-area-inset-bottom, 20px)',
-          width:'100%', maxWidth:560,
-          maxHeight:'90vh', overflowY:'auto',
-          border:'1px solid rgba(201,149,58,0.2)',
-          borderBottom:'none',
-          boxShadow:'0 -8px 40px rgba(0,0,0,0.6)'
-        }}
-      >
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', backdropFilter:'blur(4px)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="slide-up" style={{ background:'#f2f2f7', borderRadius:'20px 20px 0 0', width:'100%', maxWidth:560, maxHeight:'90vh', overflowY:'auto', paddingBottom:'env(safe-area-inset-bottom, 20px)' }}>
+
         {/* Handle */}
-        <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 8px' }}>
-          <div style={{ width:40, height:4, borderRadius:2, background:'rgba(255,255,255,0.15)' }} />
+        <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 0' }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:'#c7c7cc' }} />
         </div>
 
-        <div style={{ padding:'4px 20px 20px' }}>
-          {/* Header */}
-          <div style={{ marginBottom:20 }}>
-            <div style={{ fontSize:11, color:'#8faab5', letterSpacing:2, textTransform:'uppercase', marginBottom:4 }}>
-              {event.time}
-            </div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:'#faf7f0', lineHeight:1.3 }}>
-              {event.title}
-            </div>
-          </div>
+        <div style={{ padding:'16px 20px 24px' }}>
+          <div style={{ fontSize:18, fontWeight:700, color:'#1c1c1e', marginBottom:4 }}>Team zuweisen</div>
+          <div style={{ fontSize:14, color:'#8e8e93', marginBottom:20 }}>{event.time} · {event.title}</div>
 
-          {/* Persons */}
-          {PERSONS.map(p => {
+          {persons.map(p => {
             const active = isActive(p.key)
-            const personRoles = assignments[p.key] || []
+            const roles = assignments[p.key] || []
             return (
               <div key={p.key} style={{
-                marginBottom:12, borderRadius:14,
-                border:`1.5px solid ${active ? p.color : 'rgba(255,255,255,0.08)'}`,
-                background: active ? p.bg : 'rgba(255,255,255,0.03)',
-                overflow:'hidden',
-                transition:'all 0.2s'
+                background:'#ffffff', borderRadius:14, marginBottom:10,
+                overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
+                border: active ? `1.5px solid ${p.color}50` : '1.5px solid transparent'
               }}>
-                {/* Person row */}
-                <button
-                  onClick={() => togglePerson(p.key)}
-                  style={{
-                    width:'100%', background:'transparent', border:'none',
-                    display:'flex', alignItems:'center', gap:14,
-                    padding:'14px 16px', cursor:'pointer', textAlign:'left'
-                  }}
-                >
+                <button onClick={() => togglePerson(p.key)} style={{
+                  width:'100%', background:'transparent', border:'none',
+                  display:'flex', alignItems:'center', gap:14, padding:'14px 16px', cursor:'pointer'
+                }}>
                   <div style={{
-                    width:36, height:36, borderRadius:'50%',
+                    width:40, height:40, borderRadius:20,
+                    background: active ? p.color : `${p.color}18`,
                     border:`2px solid ${p.color}`,
-                    background: active ? p.color : 'transparent',
                     display:'flex', alignItems:'center', justifyContent:'center',
-                    color: active ? '#0d2330' : p.color,
-                    fontSize:13, fontWeight:700, flexShrink:0,
-                    fontFamily:"'DM Mono',monospace",
-                    transition:'all 0.2s'
+                    fontSize:14, fontWeight:700, color: active ? '#fff' : p.color,
+                    transition:'all 0.2s', flexShrink:0
                   }}>{p.key}</div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:15, fontWeight:600, color: active ? p.color : '#8faab5', transition:'color 0.2s' }}>
-                      {p.name}
-                    </div>
-                    {active && personRoles.length > 0 && (
-                      <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:2 }}>
-                        {personRoles.join(' · ')}
-                      </div>
-                    )}
+                  <div style={{ flex:1, textAlign:'left' }}>
+                    <div style={{ fontSize:16, fontWeight:600, color: active ? '#1c1c1e' : '#8e8e93' }}>{p.name}</div>
+                    {active && roles.length > 0 && <div style={{ fontSize:12, color:'#8e8e93', marginTop:1 }}>{roles.join(' · ')}</div>}
                   </div>
                   <div style={{
-                    width:22, height:22, borderRadius:'50%',
-                    border:`2px solid ${active ? p.color : 'rgba(255,255,255,0.15)'}`,
-                    background: active ? p.color : 'transparent',
+                    width:24, height:24, borderRadius:12,
+                    background: active ? p.color : '#e5e5ea',
                     display:'flex', alignItems:'center', justifyContent:'center',
-                    fontSize:12, color: active ? '#0d2330' : 'transparent',
-                    transition:'all 0.2s', flexShrink:0
-                  }}>✓</div>
+                    color:'white', fontSize:14, fontWeight:700, flexShrink:0
+                  }}>{active ? '✓' : ''}</div>
                 </button>
 
-                {/* Roles */}
                 {active && (
-                  <div style={{
-                    display:'flex', gap:8, padding:'0 16px 14px',
-                    flexWrap:'wrap',
-                    borderTop:'1px solid rgba(255,255,255,0.06)'
-                  }}>
-                    <div style={{ width:'100%', fontSize:10, color:'rgba(255,255,255,0.3)', letterSpacing:2, textTransform:'uppercase', paddingTop:10, marginBottom:4 }}>Rolle</div>
-                    {ROLES.map(role => {
-                      const on = personRoles.includes(role)
-                      return (
-                        <button
-                          key={role}
-                          onClick={() => toggleRole(p.key, role)}
-                          style={{
-                            padding:'8px 16px', borderRadius:20, fontSize:13,
-                            border:`1.5px solid ${on ? p.color : 'rgba(255,255,255,0.12)'}`,
-                            background: on ? p.color : 'rgba(255,255,255,0.04)',
-                            color: on ? '#0d2330' : '#8faab5',
-                            cursor:'pointer', fontFamily:"'DM Mono',monospace",
-                            fontWeight: on ? 600 : 400,
-                            transition:'all 0.15s'
-                          }}
-                        >{role}</button>
-                      )
-                    })}
+                  <div style={{ padding:'0 16px 14px', borderTop:'1px solid #f2f2f7' }}>
+                    <div style={{ fontSize:11, color:'#8e8e93', textTransform:'uppercase', letterSpacing:1, marginBottom:8, marginTop:10 }}>Rolle</div>
+                    <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                      {ROLES.map(role => {
+                        const on = roles.includes(role)
+                        return (
+                          <button key={role} onClick={() => toggleRole(p.key, role)} style={{
+                            padding:'8px 16px', borderRadius:20, fontSize:14,
+                            background: on ? p.color : '#f2f2f7',
+                            border:`1.5px solid ${on ? p.color : '#e5e5ea'}`,
+                            color: on ? '#fff' : '#3a3a3c',
+                            fontWeight: on ? 600 : 400
+                          }}>{role}</button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
             )
           })}
 
-          {/* Buttons */}
-          <div style={{ display:'flex', gap:10, marginTop:8 }}>
-            <button
-              onClick={onClose}
-              style={{
-                flex:1, background:'rgba(255,255,255,0.05)',
-                border:'1px solid rgba(255,255,255,0.1)',
-                color:'#8faab5', padding:'14px', borderRadius:12, fontSize:14
-              }}
-            >Abbrechen</button>
-            <button
-              onClick={handleSave}
-              style={{
-                flex:2, background:'#c9953a', border:'none',
-                color:'#0d2330', padding:'14px', borderRadius:12,
-                fontSize:14, fontWeight:700,
-                boxShadow:'0 4px 16px rgba(201,149,58,0.35)'
-              }}
-            >Speichern</button>
+          <div style={{ display:'flex', gap:10, marginTop:16 }}>
+            <button onClick={onClose} style={{ flex:1, padding:'14px', borderRadius:12, background:'#ffffff', border:'1px solid #e5e5ea', color:'#8e8e93', fontSize:15, fontWeight:600 }}>Abbrechen</button>
+            <button onClick={handleSave} style={{ flex:2, padding:'14px', borderRadius:12, background:'#c9953a', border:'none', color:'#fff', fontSize:15, fontWeight:700, boxShadow:'0 4px 12px rgba(201,149,58,0.3)' }}>Speichern</button>
           </div>
         </div>
       </div>
