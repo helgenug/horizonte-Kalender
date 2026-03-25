@@ -35,16 +35,19 @@ export default function App() {
   const [modal, setModal] = useState(null) // null | 'new' | event-object
   const [exportMenu, setExportMenu] = useState(null) // event id
 
-  // Seed initial data if empty
+  // Seed initial data — uses a sentinel doc to ensure it only ever runs once
   useEffect(() => {
     const seedIfEmpty = async () => {
-      const snap = await getDocs(collection(db, 'events'))
-      if (snap.empty) {
+      const { getDoc, setDoc } = await import('firebase/firestore')
+      const sentinelRef = doc(db, '_meta', 'seeded')
+      const sentinel = await getDoc(sentinelRef)
+      if (!sentinel.exists()) {
         const batch = writeBatch(db)
         INITIAL_EVENTS.forEach(e => {
           const ref = doc(collection(db, 'events'))
           batch.set(ref, { ...e, team: [] })
         })
+        batch.set(sentinelRef, { at: new Date().toISOString() })
         await batch.commit()
       }
       setSeeded(true)
