@@ -15,10 +15,9 @@ export default function ProfileModal({ person, profile, onSave, onClose }) {
     reader.readAsDataURL(file)
   }
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true)
-    await onSave({ bio, role, photo })
-    setSaving(false)
+    onSave({ bio, role, photo })
   }
 
   return (
