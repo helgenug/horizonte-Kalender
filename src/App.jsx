@@ -7,6 +7,8 @@ import TeamModal from './components/TeamModal.jsx'
 import PersonsModal from './components/PersonsModal.jsx'
 import BriefingModal from './components/BriefingModal.jsx'
 import PinLock from './components/PinLock.jsx'
+import ProfileModal from './components/ProfileModal.jsx'
+import ProfileView from './components/ProfileView.jsx'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from './components/calendarExport.js'
 
 const CAT_COLORS = {
@@ -52,6 +54,9 @@ export default function App() {
   const [personsModal, setPersonsModal] = useState(false)
   const [briefingModal, setBriefingModal] = useState(null)
   const [exportMenu, setExportMenu]     = useState(null)
+  const [profiles, setProfiles]         = useState({})
+  const [profileView, setProfileView]   = useState(null) // person key
+  const [profileEdit, setProfileEdit]   = useState(null) // person key
   const [toast, setToast]               = useState(null)
   const [pushPerson, setPushPerson]     = useState(null)
 
@@ -92,6 +97,14 @@ export default function App() {
   useEffect(() => {
     const unsub = onSnapshot(doc(db, '_meta', 'persons'), snap => {
       if (snap.exists()) setPersons(snap.data().list)
+    })
+    return unsub
+  }, [])
+
+  // Profiles listener
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, '_meta', 'profiles'), snap => {
+      if (snap.exists()) setProfiles(snap.data())
     })
     return unsub
   }, [])
@@ -177,6 +190,14 @@ export default function App() {
     }
   }
 
+  const handleSaveProfile = async (personKey, profileData) => {
+    const { setDoc } = await import('firebase/firestore')
+    await setDoc(doc(db, '_meta', 'profiles'), { ...profiles, [personKey]: profileData })
+    setProfileEdit(null)
+    setProfileView(null)
+    showToast('Profil gespeichert', 'success')
+  }
+
   const days = [...new Set(events.map(e => e.date))]
   const counts = {}
   persons.forEach(p => { counts[p.key] = 0 })
@@ -232,20 +253,26 @@ export default function App() {
               )}
             </div>
 
-            {/* Team strip */}
+            {/* Team strip — tappable for profile */}
             <div className="scroll-x" style={{ paddingBottom:14, gap:8 }}>
               {persons.map(p => (
-                <div key={p.key} style={{
-                  display:'flex', alignItems:'center', gap:7,
-                  padding:'7px 14px', borderRadius:20,
-                  background:`${p.color}12`,
-                  border:`1.5px solid ${p.color}35`,
-                  whiteSpace:'nowrap', flexShrink:0
-                }}>
-                  <div style={{ width:9, height:9, borderRadius:'50%', background:p.color }} />
+                <button key={p.key}
+                  onClick={() => setProfileView(p.key)}
+                  style={{
+                    display:'flex', alignItems:'center', gap:7,
+                    padding:'7px 14px', borderRadius:20,
+                    background:`${p.color}12`,
+                    border:`1.5px solid ${p.color}35`,
+                    whiteSpace:'nowrap', flexShrink:0,
+                    cursor:'pointer'
+                  }}>
+                  {profiles[p.key]?.photo
+                    ? <img src={profiles[p.key].photo} alt="" style={{ width:20, height:20, borderRadius:10, objectFit:'cover' }} />
+                    : <div style={{ width:9, height:9, borderRadius:'50%', background:p.color }} />
+                  }
                   <span style={{ fontSize:13, fontWeight:700, color:p.color }}>{p.name}</span>
                   <span style={{ fontSize:12, color:'#8e8e93', fontWeight:500 }}>{counts[p.key] || 0}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -385,7 +412,7 @@ export default function App() {
                                     { icon:'📧', label:'Outlook Web',     action: () => window.open(outlookCalendarUrl(e), '_blank') },
                                     { icon:'⬇️', label:'ICS Download',    action: () => downloadIcs(e) },
                                   ].map((opt, i, arr) => (
-                                    <button key={opt.label} onClick={() => { opt.action(); setExportMenu(null) }}
+                                    <button key={opt.label} onClick={(ev) => { ev.stopPropagation(); opt.action(); setExportMenu(null) }}
                                       style={{ display:'flex', alignItems:'center', gap:12, width:'100%', background:'transparent', border:'none', borderBottom: i < arr.length-1 ? '1px solid #f2f2f7' : 'none', color:'#1c1c1e', padding:'13px 16px', fontSize:14, cursor:'pointer' }}
                                       onMouseEnter={ev => ev.currentTarget.style.background='#f9f9f9'}
                                       onMouseLeave={ev => ev.currentTarget.style.background='transparent'}
@@ -450,6 +477,8 @@ export default function App() {
         {briefingModal && <BriefingModal event={briefingModal} persons={persons} onSave={handleSaveBriefing} onClose={() => setBriefingModal(null)} />}
         {personsModal && <PersonsModal  persons={persons}    onSave={handleSavePersons}  onClose={() => setPersonsModal(false)} />}
         {exportMenu   && <div style={{ position:'fixed', inset:0, zIndex:50 }} onClick={() => setExportMenu(null)} />}
+      {profileView && (() => { const p = persons.find(x => x.key === profileView); return p ? <ProfileView person={p} profile={profiles[p.key]} onEdit={() => { setProfileView(null); setProfileEdit(p.key) }} onClose={() => setProfileView(null)} /> : null })()}
+      {profileEdit && (() => { const p = persons.find(x => x.key === profileEdit); return p ? <ProfileModal person={p} profile={profiles[p.key]} onSave={(data) => handleSaveProfile(p.key, data)} onClose={() => setProfileEdit(null)} /> : null })()}
       </div>
     </PinLock>
   )
