@@ -5,6 +5,7 @@ import { INITIAL_EVENTS, CATEGORIES, DAY_LABELS } from './events.js'
 import EventModal from './components/EventModal.jsx'
 import TeamModal from './components/TeamModal.jsx'
 import PersonsModal from './components/PersonsModal.jsx'
+import BriefingModal from './components/BriefingModal.jsx'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from './components/calendarExport.js'
 
 const CAT_COLORS = {
@@ -47,6 +48,7 @@ export default function App() {
   const [editModal, setEditModal]     = useState(null)
   const [teamModal, setTeamModal]     = useState(null)
   const [personsModal, setPersonsModal] = useState(false)
+  const [briefingModal, setBriefingModal] = useState(null)
   const [exportMenu, setExportMenu]   = useState(null)
 
   // Seed
@@ -112,6 +114,11 @@ export default function App() {
   const handleSaveTeam = async ({ assignments, team }) => {
     await updateDoc(doc(db, 'events', teamModal.id), { assignments, team })
     setTeamModal(null)
+  }
+
+  const handleSaveBriefing = async (briefingData) => {
+    await updateDoc(doc(db, 'events', briefingModal.id), { briefing: briefingData })
+    setBriefingModal(null)
   }
 
   const handleSavePersons = async (newPersons) => {
@@ -314,7 +321,21 @@ export default function App() {
                             }}
                           >
                             <span>👥</span>
-                            <span>{hasTeam ? 'Team ändern' : 'Team zuweisen'}</span>
+                            <span>{hasTeam ? 'Team' : 'Team'}</span>
+                          </button>
+                          <button
+                            onClick={() => setBriefingModal(e)}
+                            style={{
+                              flex:1, padding:'9px 0', borderRadius:10,
+                              background: e.briefing && (e.briefing.notes || e.briefing.deadline || Object.values(e.briefing.tasks||{}).some(t=>t)) ? '#34c75912' : '#f2f2f7',
+                              border:`1px solid ${e.briefing && (e.briefing.notes || e.briefing.deadline || Object.values(e.briefing.tasks||{}).some(t=>t)) ? '#34c75940' : '#e5e5ea'}`,
+                              color: e.briefing && (e.briefing.notes || e.briefing.deadline || Object.values(e.briefing.tasks||{}).some(t=>t)) ? '#34c759' : '#8e8e93',
+                              fontSize:13, fontWeight:600,
+                              display:'flex', alignItems:'center', justifyContent:'center', gap:5
+                            }}
+                          >
+                            <span>📋</span>
+                            <span>Briefing</span>
                           </button>
 
                           <div style={{ position:'relative' }}>
@@ -398,6 +419,7 @@ export default function App() {
       {editModal && <EventModal event={editModal==='new' ? null : editModal} onSave={handleSaveEvent} onDelete={handleDeleteEvent} onClose={() => setEditModal(null)} />}
       {teamModal && <TeamModal event={teamModal} persons={persons} onSave={handleSaveTeam} onClose={() => setTeamModal(null)} />}
       {personsModal && <PersonsModal persons={persons} onSave={handleSavePersons} onClose={() => setPersonsModal(false)} />}
+      {briefingModal && <BriefingModal event={briefingModal} persons={persons} onSave={handleSaveBriefing} onClose={() => setBriefingModal(null)} />}
       {exportMenu && <div style={{ position:'fixed', inset:0, zIndex:50 }} onClick={() => setExportMenu(null)} />}
     </div>
   )
