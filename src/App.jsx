@@ -298,14 +298,14 @@ export default function App() {
 
                             {/* Time block */}
                             <div style={{
-                              flexShrink:0, width:64,
+                              flexShrink:0, minWidth:72, width:72,
                               display:'flex', alignItems:'flex-start',
-                              paddingTop:3
+                              paddingTop:2
                             }}>
                               <span style={{
-                                fontSize:28, fontWeight:800, lineHeight:1,
+                                fontSize:'clamp(20px, 4vw, 24px)', fontWeight:800, lineHeight:1,
                                 color: past ? '#c7c7cc' : catColor,
-                                letterSpacing:-1, fontVariantNumeric:'tabular-nums',
+                                letterSpacing:-0.5, fontVariantNumeric:'tabular-nums',
                                 whiteSpace:'nowrap'
                               }}>{e.time}</span>
                             </div>
