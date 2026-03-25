@@ -293,42 +293,68 @@ export default function App() {
                       <div key={e.id} style={{ opacity: past ? 0.42 : 1, transition:'opacity 0.4s' }}>
                         <div style={{ padding:'14px 16px' }}>
 
-                          {/* Top meta row */}
-                          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-                            <span style={{ fontSize:14, fontWeight:700, color: past ? '#8e8e93' : catColor, letterSpacing:0.2 }}>{e.time}</span>
-                            <span style={{
-                              fontSize:10, fontWeight:700, letterSpacing:0.8,
-                              textTransform:'uppercase', color:catColor,
-                              background:`${catColor}12`, padding:'3px 8px',
-                              borderRadius:6, border:`1px solid ${catColor}25`
-                            }}>{e.cat}</span>
-                            {past && <span style={{ fontSize:10, color:'#8e8e93', background:'#f2f2f7', padding:'2px 7px', borderRadius:6 }}>Vergangen</span>}
-                            {hasBriefing && <span style={{ fontSize:10, color:'#34c759', background:'#34c75912', padding:'2px 7px', borderRadius:6, border:'1px solid #34c75930', marginLeft:'auto' }}>📋 Briefing</span>}
-                            {hasTeam && !hasBriefing && (
-                              <div style={{ marginLeft:'auto', display:'flex' }}>
-                                {persons.filter(p => team.includes(p.key)).map((p, i) => (
-                                  <div key={p.key} style={{ width:22, height:22, borderRadius:11, background:p.color, border:'2px solid white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:800, color:'white', marginLeft: i > 0 ? -6 : 0 }}>{p.key}</div>
-                                ))}
+                          {/* Card layout: big time left, content right */}
+                          <div style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
+
+                            {/* Time block */}
+                            <div style={{
+                              flexShrink:0, width:58,
+                              display:'flex', flexDirection:'column', alignItems:'center',
+                              paddingTop:2
+                            }}>
+                              <span style={{
+                                fontSize:26, fontWeight:800, lineHeight:1,
+                                color: past ? '#c7c7cc' : catColor,
+                                letterSpacing:-1, fontVariantNumeric:'tabular-nums'
+                              }}>{e.time.split(':')[0]}</span>
+                              <span style={{
+                                fontSize:14, fontWeight:700, lineHeight:1,
+                                color: past ? '#c7c7cc' : catColor, opacity:0.7,
+                                letterSpacing:0
+                              }}>:{e.time.split(':')[1]}</span>
+                            </div>
+
+                            {/* Content block */}
+                            <div style={{ flex:1, minWidth:0 }}>
+
+                              {/* Cat + badges row */}
+                              <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6, flexWrap:'wrap' }}>
+                                <span style={{
+                                  fontSize:10, fontWeight:700, letterSpacing:0.8,
+                                  textTransform:'uppercase', color:catColor,
+                                  background:`${catColor}12`, padding:'3px 8px',
+                                  borderRadius:6, border:`1px solid ${catColor}25`
+                                }}>{e.cat}</span>
+                                {past && <span style={{ fontSize:10, color:'#8e8e93', background:'#f2f2f7', padding:'2px 7px', borderRadius:6 }}>Vergangen</span>}
+                                {hasBriefing && <span style={{ fontSize:10, color:'#34c759', background:'#34c75912', padding:'2px 7px', borderRadius:6, border:'1px solid #34c75930' }}>📋</span>}
+                                {hasTeam && (
+                                  <div style={{ marginLeft:'auto', display:'flex' }}>
+                                    {persons.filter(p => team.includes(p.key)).map((p, i) => (
+                                      <div key={p.key} style={{ width:20, height:20, borderRadius:10, background:p.color, border:'2px solid white', display:'flex', alignItems:'center', justifyContent:'center', fontSize:8, fontWeight:800, color:'white', marginLeft: i > 0 ? -5 : 0 }}>{p.key}</div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
 
-                          {/* Title */}
-                          <div
-                            onClick={() => setEditModal(e)}
-                            style={{ fontSize:16, fontWeight:600, color: past ? '#8e8e93' : '#1c1c1e', lineHeight:1.4, cursor:'pointer', marginBottom: e.location ? 5 : 0 }}
-                          >{e.title}</div>
+                              {/* Title */}
+                              <div
+                                onClick={() => setEditModal(e)}
+                                style={{ fontSize:15, fontWeight:600, color: past ? '#8e8e93' : '#1c1c1e', lineHeight:1.4, cursor:'pointer', marginBottom: e.location ? 5 : 0 }}
+                              >{e.title}</div>
 
-                          {/* Location → Maps link */}
-                          {e.location && (
-                            <a href={mapsUrl(e.location)} target="_blank" rel="noopener noreferrer"
-                              style={{ fontSize:13, color:'#007aff', display:'inline-flex', alignItems:'center', gap:4, textDecoration:'none', marginBottom:2 }}
-                              onClick={ev => ev.stopPropagation()}
-                            >
-                              <span>📍</span>
-                              <span style={{ borderBottom:'1px solid rgba(0,122,255,0.25)' }}>{e.location}</span>
-                            </a>
-                          )}
+                              {/* Location → Maps link */}
+                              {e.location && (
+                                <a href={mapsUrl(e.location)} target="_blank" rel="noopener noreferrer"
+                                  style={{ fontSize:13, color:'#007aff', display:'inline-flex', alignItems:'center', gap:4, textDecoration:'none', marginBottom:2 }}
+                                  onClick={ev => ev.stopPropagation()}
+                                >
+                                  <span>📍</span>
+                                  <span style={{ borderBottom:'1px solid rgba(0,122,255,0.25)' }}>{e.location}</span>
+                                </a>
+                              )}
+
+                            </div>{/* end content block */}
+                          </div>{/* end card layout */}
 
                           {/* Team badges */}
                           {hasTeam && (
