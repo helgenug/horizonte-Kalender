@@ -3,7 +3,6 @@ export function googleCalendarUrl(event) {
   const dateStr = event.date.replace(/-/g, '')
   const [h, m] = event.time.split(':')
   const startDt = `${dateStr}T${h}${m}00`
-  // assume 90 min duration
   const endH = String(parseInt(h) + 1).padStart(2, '0')
   const endDt = `${dateStr}T${endH}${m}00`
   const params = new URLSearchParams({
@@ -13,7 +12,7 @@ export function googleCalendarUrl(event) {
     details: event.location ? `Ort: ${event.location}` : '',
     location: event.location || '',
   })
-  return `https://calendar.google.com/calendar/render?${params}`
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
 // Outlook Web link
@@ -32,7 +31,7 @@ export function outlookCalendarUrl(event) {
     body: event.location ? `Ort: ${event.location}` : '',
     location: event.location || '',
   })
-  return `https://outlook.live.com/calendar/0/action/compose?${params}`
+  return `https://outlook.live.com/calendar/0/action/compose?${params.toString()}`
 }
 
 // ICS download for single event
@@ -42,24 +41,31 @@ export function downloadIcs(event) {
   const startDt = `${dateStr}T${h}${m}00`
   const endH = String(parseInt(h) + 1).padStart(2, '0')
   const endDt = `${dateStr}T${endH}${m}00`
+
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
     'PRODID:-//Horizonte Zingst 2026//DE',
     'BEGIN:VEVENT',
     `DTSTART:${startDt}`,
     `DTEND:${endDt}`,
     `SUMMARY:${event.title}`,
     event.location ? `LOCATION:${event.location}` : '',
+    `DESCRIPTION:${event.cat}${event.location ? ' · ' + event.location : ''}`,
+    `UID:${event.id || Date.now()}@horizonte-zingst`,
     'END:VEVENT',
     'END:VCALENDAR'
   ].filter(Boolean).join('\r\n')
 
-  const blob = new Blob([ics], { type: 'text/calendar' })
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `${event.title.slice(0,30).replace(/[^a-z0-9]/gi,'-')}.ics`
+  a.download = `${event.title.slice(0, 40).replace(/[^a-zA-Z0-9äöüÄÖÜ\s-]/g, '').trim().replace(/\s+/g, '-')}.ics`
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
