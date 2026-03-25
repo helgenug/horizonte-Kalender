@@ -26,11 +26,24 @@ const DEFAULT_PERSONS = [
   { key:'I', name:'Ilayda', color:'#af52de' },
 ]
 
+
+// Returns true if a date+time string is in the past
+function isPast(date, time) {
+  const dt = new Date(`${date}T${time}:00`)
+  return dt < new Date()
+}
+
+// Google Maps URL from location string
+function mapsUrl(location) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+}
+
 export default function App() {
   const [events, setEvents]           = useState([])
   const [persons, setPersons]         = useState(DEFAULT_PERSONS)
   const [loading, setLoading]         = useState(true)
   const [seeded, setSeeded]           = useState(false)
+  const [now, setNow]                 = useState(new Date())
   const [editModal, setEditModal]     = useState(null)
   const [teamModal, setTeamModal]     = useState(null)
   const [personsModal, setPersonsModal] = useState(false)
@@ -55,6 +68,12 @@ export default function App() {
       setSeeded(true)
     }
     seed()
+  }, [])
+
+  // Update "now" every minute so past events auto-grey
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000)
+    return () => clearInterval(t)
   }, [])
 
   // Load persons from Firestore
@@ -204,9 +223,10 @@ export default function App() {
                   const catColor = CAT_COLORS[e.cat] || '#8e8e93'
                   const hasTeam = team.length > 0
                   const isLast = idx === dayEvs.length - 1
+                  const past = isPast(e.date, e.time)
 
                   return (
-                    <div key={e.id}>
+                    <div key={e.id} style={{ opacity: past ? 0.45 : 1, transition:'opacity 0.3s' }}>
                       <div style={{ padding:'14px 16px' }}>
 
                         {/* Time + Cat */}
@@ -245,9 +265,16 @@ export default function App() {
 
                         {/* Location */}
                         {e.location && (
-                          <div style={{ fontSize:13, color:'#8e8e93', display:'flex', alignItems:'center', gap:4 }}>
-                            <span>📍</span>{e.location}
-                          </div>
+                          <a
+                            href={mapsUrl(e.location)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize:13, color:'#007aff', display:'flex', alignItems:'center', gap:4, textDecoration:'none' }}
+                            onClick={ev => ev.stopPropagation()}
+                          >
+                            <span>📍</span>
+                            <span style={{ borderBottom:'1px solid rgba(0,122,255,0.3)' }}>{e.location}</span>
+                          </a>
                         )}
 
                         {/* Team detail */}
