@@ -25,7 +25,7 @@ const CAT_COLORS = {
 const DEFAULT_PERSONS = [
   { key:'H', name:'Holger', color:'#ff6b35' },
   { key:'D', name:'David',  color:'#007aff' },
-  { key:'I', name:'Ilayda', color:'#af52de' },
+  { key:'I', name:'Ilayda', color:'#ff3b30' },
 ]
 
 function isPast(date, time) {
@@ -298,20 +298,16 @@ export default function App() {
 
                             {/* Time block */}
                             <div style={{
-                              flexShrink:0, width:58,
-                              display:'flex', flexDirection:'column', alignItems:'center',
-                              paddingTop:2
+                              flexShrink:0, width:64,
+                              display:'flex', alignItems:'flex-start',
+                              paddingTop:3
                             }}>
                               <span style={{
-                                fontSize:26, fontWeight:800, lineHeight:1,
+                                fontSize:28, fontWeight:800, lineHeight:1,
                                 color: past ? '#c7c7cc' : catColor,
-                                letterSpacing:-1, fontVariantNumeric:'tabular-nums'
-                              }}>{e.time.split(':')[0]}</span>
-                              <span style={{
-                                fontSize:14, fontWeight:700, lineHeight:1,
-                                color: past ? '#c7c7cc' : catColor, opacity:0.7,
-                                letterSpacing:0
-                              }}>:{e.time.split(':')[1]}</span>
+                                letterSpacing:-1, fontVariantNumeric:'tabular-nums',
+                                whiteSpace:'nowrap'
+                              }}>{e.time}</span>
                             </div>
 
                             {/* Content block */}
