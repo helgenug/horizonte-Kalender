@@ -6,8 +6,12 @@
   --deep: #0d2330;
   --horizon: #3d7a8a;
   --gold: #c9953a;
+  --gold-soft: rgba(201,149,58,0.15);
   --fog: #8faab5;
   --white: #faf7f0;
+  --card: #112433;
+  --card-hover: #152b3c;
+  --border: rgba(255,255,255,0.07);
   --h-color: #e8845a;
   --d-color: #5ab8e8;
   --i-color: #a87ee0;
@@ -16,33 +20,63 @@
   --i-bg: rgba(168,126,224,0.15);
 }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   background: var(--deep);
   color: var(--sand);
   font-family: 'DM Mono', monospace;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-button { cursor: pointer; font-family: 'DM Mono', monospace; }
+button {
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
 
 input, select, textarea {
   font-family: 'DM Mono', monospace;
-  background: rgba(26,58,74,0.5);
+  background: rgba(26,58,74,0.6);
   border: 1px solid rgba(143,170,181,0.3);
   color: var(--sand);
-  padding: 8px 12px;
-  border-radius: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
   width: 100%;
-  font-size: 13px;
+  font-size: 15px;
 }
-
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--gold);
+  background: rgba(26,58,74,0.8);
 }
-
 select option { background: var(--ocean); }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--deep); }
-::-webkit-scrollbar-thumb { background: var(--horizon); border-radius: 3px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--horizon); border-radius: 4px; }
+
+/* Smooth scroll for filter strip */
+.filter-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease both; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-in { animation: modalIn 0.2s ease both; }

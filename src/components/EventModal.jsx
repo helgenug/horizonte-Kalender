@@ -1,113 +1,108 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { CATEGORIES } from '../events.js'
-
-const styles = {
-  overlay: {
-    position:'fixed', inset:0, background:'rgba(0,0,0,0.75)',
-    display:'flex', alignItems:'center', justifyContent:'center',
-    zIndex:1000, padding:'20px'
-  },
-  modal: {
-    background:'#0f2a3a', border:'1px solid rgba(201,149,58,0.3)',
-    borderRadius:'8px', padding:'28px', width:'100%', maxWidth:'480px',
-    maxHeight:'90vh', overflowY:'auto'
-  },
-  title: {
-    fontFamily:"'Playfair Display', serif", fontSize:'22px',
-    color:'#faf7f0', marginBottom:'24px', fontStyle:'italic'
-  },
-  field: { marginBottom:'16px' },
-  label: { fontSize:'10px', letterSpacing:'2px', color:'#8faab5', textTransform:'uppercase', display:'block', marginBottom:'6px' },
-  row: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' },
-  btnRow: { display:'flex', gap:'10px', marginTop:'24px', justifyContent:'flex-end' },
-  btnCancel: {
-    background:'transparent', border:'1px solid rgba(143,170,181,0.3)',
-    color:'#8faab5', padding:'8px 20px', borderRadius:'4px', fontSize:'12px'
-  },
-  btnSave: {
-    background:'#c9953a', border:'none', color:'#0d2330',
-    padding:'8px 24px', borderRadius:'4px', fontSize:'12px', fontWeight:'500'
-  },
-  btnDelete: {
-    background:'transparent', border:'1px solid rgba(200,80,60,0.4)',
-    color:'#e09080', padding:'8px 16px', borderRadius:'4px', fontSize:'12px', marginRight:'auto'
-  }
-}
 
 export default function EventModal({ event, onSave, onDelete, onClose }) {
   const isNew = !event?.id
   const [form, setForm] = useState({
-    date: event?.date || '2026-05-29',
-    time: event?.time || '10:00',
-    title: event?.title || '',
+    date:     event?.date     || '2026-05-29',
+    time:     event?.time     || '10:00',
+    title:    event?.title    || '',
     location: event?.location || '',
-    cat: event?.cat || 'Talk',
-    team: event?.team || []
+    cat:      event?.cat      || 'Talk',
   })
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const handleSave = () => {
-    if (!form.title.trim()) return
-    onSave({ ...event, ...form })
-  }
-
   return (
-    <div style={styles.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={styles.modal}>
-        <div style={styles.title}>{isNew ? 'Neuer Termin' : 'Termin bearbeiten'}</div>
+    <div
+      style={{
+        position:'fixed', inset:0,
+        background:'rgba(0,0,0,0.7)',
+        backdropFilter:'blur(6px)',
+        display:'flex', alignItems:'flex-end', justifyContent:'center',
+        zIndex:1000
+      }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="modal-in"
+        style={{
+          background:'#0f2535',
+          borderRadius:'20px 20px 0 0',
+          padding:'0 0 env(safe-area-inset-bottom, 20px)',
+          width:'100%', maxWidth:560,
+          maxHeight:'92vh', overflowY:'auto',
+          border:'1px solid rgba(201,149,58,0.2)',
+          borderBottom:'none',
+          boxShadow:'0 -8px 40px rgba(0,0,0,0.6)'
+        }}
+      >
+        {/* Handle */}
+        <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 8px' }}>
+          <div style={{ width:40, height:4, borderRadius:2, background:'rgba(255,255,255,0.15)' }} />
+        </div>
 
-        <div style={styles.row}>
-          <div style={styles.field}>
-            <label style={styles.label}>Datum</label>
-            <input type="date" value={form.date} onChange={e => set('date', e.target.value)} />
+        <div style={{ padding:'4px 20px 20px' }}>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:20, color:'#faf7f0', fontStyle:'italic', marginBottom:22 }}>
+            {isNew ? 'Neuer Termin' : 'Termin bearbeiten'}
           </div>
-          <div style={styles.field}>
-            <label style={styles.label}>Uhrzeit</label>
-            <input type="time" value={form.time} onChange={e => set('time', e.target.value)} />
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+            <div>
+              <div style={{ fontSize:10, letterSpacing:2, color:'#8faab5', textTransform:'uppercase', marginBottom:6 }}>Datum</div>
+              <input type="date" value={form.date} onChange={e => set('date', e.target.value)} />
+            </div>
+            <div>
+              <div style={{ fontSize:10, letterSpacing:2, color:'#8faab5', textTransform:'uppercase', marginBottom:6 }}>Uhrzeit</div>
+              <input type="time" value={form.time} onChange={e => set('time', e.target.value)} />
+            </div>
           </div>
-        </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Titel</label>
-          <input type="text" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Titel des Termins" />
-        </div>
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:'#8faab5', textTransform:'uppercase', marginBottom:6 }}>Titel</div>
+            <input type="text" value={form.title} onChange={e => set('title', e.target.value)} placeholder="Titel des Termins" />
+          </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Ort</label>
-          <input type="text" value={form.location} onChange={e => set('location', e.target.value)} placeholder="z.B. Meeting Point" />
-        </div>
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:'#8faab5', textTransform:'uppercase', marginBottom:6 }}>Ort</div>
+            <input type="text" value={form.location} onChange={e => set('location', e.target.value)} placeholder="z.B. Meeting Point" />
+          </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Kategorie</label>
-          <select value={form.cat} onChange={e => set('cat', e.target.value)}>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
+          <div style={{ marginBottom:24 }}>
+            <div style={{ fontSize:10, letterSpacing:2, color:'#8faab5', textTransform:'uppercase', marginBottom:6 }}>Kategorie</div>
+            <select value={form.cat} onChange={e => set('cat', e.target.value)}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
 
-        <div style={styles.field}>
-          <label style={styles.label}>Team</label>
-          <div style={{ display:'flex', gap:'8px', marginTop:'4px' }}>
-            {[['H','Holger','#e8845a'],['D','David','#5ab8e8'],['I','Ilayda','#a87ee0']].map(([k,name,color]) => (
+          <div style={{ display:'flex', gap:10 }}>
+            {!isNew && (
               <button
-                key={k}
-                onClick={() => set('team', form.team.includes(k) ? form.team.filter(x=>x!==k) : [...form.team, k])}
+                onClick={() => onDelete(event.id)}
                 style={{
-                  padding:'6px 16px', borderRadius:'4px', fontSize:'12px',
-                  border: `1.5px solid ${color}`,
-                  background: form.team.includes(k) ? color : 'transparent',
-                  color: form.team.includes(k) ? '#0d2330' : color,
-                  fontWeight: form.team.includes(k) ? '500' : '400'
+                  background:'rgba(200,80,60,0.1)', border:'1px solid rgba(200,80,60,0.3)',
+                  color:'#e09080', padding:'14px 16px', borderRadius:12, fontSize:14
                 }}
-              >{k} · {name}</button>
-            ))}
+              >🗑</button>
+            )}
+            <button
+              onClick={onClose}
+              style={{
+                flex:1, background:'rgba(255,255,255,0.05)',
+                border:'1px solid rgba(255,255,255,0.1)',
+                color:'#8faab5', padding:'14px', borderRadius:12, fontSize:14
+              }}
+            >Abbrechen</button>
+            <button
+              onClick={() => form.title.trim() && onSave({ ...event, ...form })}
+              style={{
+                flex:2, background:'#c9953a', border:'none',
+                color:'#0d2330', padding:'14px', borderRadius:12,
+                fontSize:14, fontWeight:700,
+                boxShadow:'0 4px 16px rgba(201,149,58,0.35)'
+              }}
+            >Speichern</button>
           </div>
-        </div>
-
-        <div style={styles.btnRow}>
-          {!isNew && <button style={styles.btnDelete} onClick={() => onDelete(event.id)}>Löschen</button>}
-          <button style={styles.btnCancel} onClick={onClose}>Abbrechen</button>
-          <button style={styles.btnSave} onClick={handleSave}>Speichern</button>
         </div>
       </div>
     </div>
