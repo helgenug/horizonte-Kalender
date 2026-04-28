@@ -2,18 +2,7 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 import { db } from './firebase.js'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 
-// Replace with your VAPID key from Firebase Console → Project Settings → Cloud Messaging
-const VAPID_KEY = 'REPLACE_WITH_YOUR_VAPID_KEY'
-
-let messaging = null
-
-function getMsg() {
-  if (!messaging) {
-    const { initializeApp, getApps } = require('firebase/app')
-    messaging = getMessaging()
-  }
-  return messaging
-}
+const VAPID_KEY = 'BEHowiQDTWW6gg8LpN2CMy_-Zw6cpRXIRxM_HOuyQiPCr1LCjskpTf67WCL2BJCb4Kkv0TogaXysQeqnukt5tLM'
 
 export async function requestPushPermission(personKey) {
   try {
@@ -24,7 +13,6 @@ export async function requestPushPermission(personKey) {
     const token = await getToken(msg, { vapidKey: VAPID_KEY })
     if (!token) return false
 
-    // Save token to Firestore under _meta/pushTokens
     const ref = doc(db, '_meta', 'pushTokens')
     const snap = await getDoc(ref)
     const existing = snap.exists() ? snap.data() : {}
