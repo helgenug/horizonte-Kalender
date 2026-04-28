@@ -10,6 +10,7 @@ import PinLock from './components/PinLock.jsx'
 import ProfileModal from './components/ProfileModal.jsx'
 import ProfileView from './components/ProfileView.jsx'
 import { googleCalendarUrl, outlookCalendarUrl, downloadIcs } from './components/calendarExport.js'
+import { requestPushPermission } from './push.js'
 
 const CAT_COLORS = {
   MVS:          '#007aff',
@@ -55,8 +56,8 @@ export default function App() {
   const [briefingModal, setBriefingModal] = useState(null)
   const [exportMenu, setExportMenu]     = useState(null)
   const [profiles, setProfiles]         = useState({})
-  const [profileView, setProfileView]   = useState(null) // person key
-  const [profileEdit, setProfileEdit]   = useState(null) // person key
+  const [profileView, setProfileView]   = useState(null)
+  const [profileEdit, setProfileEdit]   = useState(null)
   const [toast, setToast]               = useState(null)
   const [pushPerson, setPushPerson]     = useState(null)
 
@@ -162,31 +163,12 @@ export default function App() {
       showToast('Dein Browser unterstützt keine Push-Benachrichtigungen')
       return
     }
-    try {
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') {
-        showToast('Benachrichtigungen wurden abgelehnt')
-        return
-      }
-      const { getMessaging, getToken } = await import('firebase/messaging')
-      const messaging = getMessaging()
-      // Note: VAPID key needs to be set in Firebase Console → Project Settings → Cloud Messaging
-      // Then replace the placeholder below
-      const token = await getToken(messaging, {
-        vapidKey: 'BK5p8Q_REPLACE_WITH_VAPID_KEY_FROM_FIREBASE_CONSOLE'
-      })
-      if (token) {
-        const { setDoc, getDoc } = await import('firebase/firestore')
-        const ref = doc(db, '_meta', 'pushTokens')
-        const snap = await getDoc(ref)
-        const existing = snap.exists() ? snap.data() : {}
-        await setDoc(ref, { ...existing, [personKey]: token })
-        showToast('Push-Benachrichtigungen aktiviert ✓', 'success')
-        setPushPerson(personKey)
-      }
-    } catch (err) {
-      console.error(err)
-      showToast('Fehler beim Aktivieren der Benachrichtigungen')
+    const ok = await requestPushPermission(personKey)
+    if (ok) {
+      showToast('Push-Benachrichtigungen aktiviert ✓', 'success')
+      setPushPerson(personKey)
+    } else {
+      showToast('Benachrichtigungen wurden abgelehnt')
     }
   }
 
@@ -437,19 +419,22 @@ export default function App() {
         <div style={{ position:'fixed', bottom:0, left:0, right:0, background:'rgba(255,255,255,0.94)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderTop:'1px solid #e5e5ea', paddingBottom:'env(safe-area-inset-bottom, 0px)' }}>
           <div style={{ maxWidth:680, margin:'0 auto', padding:'10px 24px 12px', display:'flex', justifyContent:'space-around', alignItems:'center' }}>
             {persons.map(p => (
-              <button key={p.key}
-                onClick={() => handleEnablePush(p.key)}
-                title={`Push für ${p.name} aktivieren`}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, background:'transparent', border:'none', padding:'4px 8px', borderRadius:12, cursor:'pointer', minWidth:64 }}
-              >
-                <div style={{ width:40, height:40, borderRadius:20, background:`${p.color}15`, border:`2px solid ${p.color}35`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17, fontWeight:800, color:p.color, position:'relative' }}>
-                  {counts[p.key] || 0}
-                  {pushPerson === p.key && (
-                    <div style={{ position:'absolute', top:-2, right:-2, width:10, height:10, borderRadius:5, background:'#34c759', border:'2px solid white' }} />
-                  )}
+              <div key={p.key} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:64 }}>
+                <div style={{ position:'relative' }}>
+                  <button
+                    onClick={() => setProfileView(p.key)}
+                    style={{ width:40, height:40, borderRadius:20, background:`${p.color}15`, border:`2px solid ${p.color}35`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17, fontWeight:800, color:p.color, cursor:'pointer' }}
+                  >
+                    {counts[p.key] || 0}
+                  </button>
+                  <button
+                    onClick={() => handleEnablePush(p.key)}
+                    title={`Push für ${p.name} aktivieren`}
+                    style={{ position:'absolute', top:-3, right:-3, width:16, height:16, borderRadius:8, background: pushPerson === p.key ? '#34c759' : '#e5e5ea', border:'2px solid white', fontSize:8, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}
+                  >🔔</button>
                 </div>
                 <span style={{ fontSize:11, color:'#8e8e93', fontWeight:600 }}>{p.name}</span>
-              </button>
+              </div>
             ))}
             <div style={{ width:1, height:36, background:'#e5e5ea' }} />
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:48 }}>
@@ -477,8 +462,8 @@ export default function App() {
         {briefingModal && <BriefingModal event={briefingModal} persons={persons} onSave={handleSaveBriefing} onClose={() => setBriefingModal(null)} />}
         {personsModal && <PersonsModal  persons={persons}    onSave={handleSavePersons}  onClose={() => setPersonsModal(false)} />}
         {exportMenu   && <div style={{ position:'fixed', inset:0, zIndex:50 }} onClick={() => setExportMenu(null)} />}
-      {profileView && (() => { const p = persons.find(x => x.key === profileView); return p ? <ProfileView person={p} profile={profiles[p.key]} onEdit={() => { setProfileView(null); setProfileEdit(p.key) }} onClose={() => setProfileView(null)} /> : null })()}
-      {profileEdit && (() => { const p = persons.find(x => x.key === profileEdit); return p ? <ProfileModal person={p} profile={profiles[p.key]} onSave={(data) => handleSaveProfile(p.key, data)} onClose={() => setProfileEdit(null)} /> : null })()}
+        {profileView && (() => { const p = persons.find(x => x.key === profileView); return p ? <ProfileView person={p} profile={profiles[p.key]} onEdit={() => { setProfileView(null); setProfileEdit(p.key) }} onClose={() => setProfileView(null)} /> : null })()}
+        {profileEdit && (() => { const p = persons.find(x => x.key === profileEdit); return p ? <ProfileModal person={p} profile={profiles[p.key]} onSave={(data) => handleSaveProfile(p.key, data)} onClose={() => setProfileEdit(null)} /> : null })()}
       </div>
     </PinLock>
   )
