@@ -1,10 +1,30 @@
 import { useState, useRef } from 'react'
 
+const MAX_IMAGE_SIZE = 600 // px — Bild wird vor dem Speichern verkleinert
+
+function resizeImage(dataUrl, maxSize = MAX_IMAGE_SIZE) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1)
+      const w = Math.round(img.width * scale)
+      const h = Math.round(img.height * scale)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      resolve(canvas.toDataURL('image/jpeg', 0.82))
+    }
+    img.src = dataUrl
+  })
+}
+
 export default function ProfileModal({ person, profile, onSave, onClose }) {
   const [bio, setBio]         = useState(profile?.bio || '')
   const [role, setRole]       = useState(profile?.role || '')
   const [photo, setPhoto]     = useState(profile?.photo || null)
   const [saving, setSaving]   = useState(false)
+  const [error, setError]     = useState(null)
   const fileRef               = useRef()
 
   const handlePhoto = (e) => {
@@ -15,9 +35,17 @@ export default function ProfileModal({ person, profile, onSave, onClose }) {
     reader.readAsDataURL(file)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true)
-    onSave({ bio, role, photo })
+    setError(null)
+    try {
+      const resized = photo ? await resizeImage(photo) : null
+      await onSave({ bio, role, photo: resized })
+    } catch (err) {
+      console.error('Profil speichern fehlgeschlagen:', err)
+      setError('Speichern fehlgeschlagen. Bitte nochmal versuchen.')
+      setSaving(false)
+    }
   }
 
   return (
@@ -77,7 +105,7 @@ export default function ProfileModal({ person, profile, onSave, onClose }) {
           </div>
 
           {/* Bio */}
-          <div style={{ marginBottom:28 }}>
+          <div style={{ marginBottom: error ? 12 : 28 }}>
             <div style={{ fontSize:11, color:'#8e8e93', textTransform:'uppercase', letterSpacing:1, fontWeight:600, marginBottom:6 }}>Über mich</div>
             <div style={{ background:'#ffffff', borderRadius:14, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.06)' }}>
               <textarea
@@ -90,9 +118,16 @@ export default function ProfileModal({ person, profile, onSave, onClose }) {
             </div>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div style={{ marginBottom:16, padding:'10px 14px', borderRadius:10, background:'#ff3b3010', border:'1px solid #ff3b3030', color:'#ff3b30', fontSize:13 }}>
+              {error}
+            </div>
+          )}
+
           {/* Buttons */}
           <div style={{ display:'flex', gap:10 }}>
-            <button onClick={onClose} style={{ flex:1, padding:'14px', borderRadius:12, background:'#ffffff', border:'1px solid #e5e5ea', color:'#8e8e93', fontSize:15, fontWeight:600 }}>
+            <button onClick={onClose} disabled={saving} style={{ flex:1, padding:'14px', borderRadius:12, background:'#ffffff', border:'1px solid #e5e5ea', color:'#8e8e93', fontSize:15, fontWeight:600 }}>
               Abbrechen
             </button>
             <button onClick={handleSave} disabled={saving} style={{ flex:2, padding:'14px', borderRadius:12, background: person.color, border:'none', color:'#fff', fontSize:15, fontWeight:700, opacity: saving ? 0.7 : 1, boxShadow:`0 4px 12px ${person.color}40` }}>
